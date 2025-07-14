@@ -319,3 +319,18 @@ Protected (auth required):
     "platform": "DoorDash",
     "average_rating": 0.0
   }
+
+
+## 🚀 Running the Django Project
+
+1. Navigate to the project root:
+    ```bash
+    cd orm_series/orm_series
+    ```
+
+2. Start the Django development server:
+    ```bash
+    python manage.py runserver
+    ```
+
+
