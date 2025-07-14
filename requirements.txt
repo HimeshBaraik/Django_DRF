@@ -1,0 +1,10 @@
+# Core framework
+Django
+djangorestframework
+
+# JWT Authentication
+djangorestframework-simplejwt
+
+# API documentation 
+drf-yasg
+drf_spectacular
