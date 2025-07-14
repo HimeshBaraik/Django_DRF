@@ -322,7 +322,7 @@ Protected (auth required):
   }
 
 
-## 🚀 Running the Django Project
+## Running the Django Project
 
 1. Navigate to the project root:
     ```bash
