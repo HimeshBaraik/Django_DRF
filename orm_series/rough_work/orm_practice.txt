@@ -1,0 +1,246 @@
+https://atharvashah.netlify.app/posts/tech/django-orm-exercises/
+
+
+
+#####################################################################
+creating objects way 1:
+def run():
+    restaurant = Restaurant()
+    restaurant.name = 'My Italian Restaurant'
+    restaurant.latitude = 50.2
+    restaurant.longitude = 50.2
+    restaurant.date_opened = timezone.now()
+    restaurant.restaurant_type = Restaurant.TypeChoices.ITALIAN
+
+    # saving the data to the database - creating / updating
+    restaurant.save()
+
+
+creating objects way 2:
+def run():
+    Restaurant.objects.create(
+        name = 'Pizza Shop',
+
+    )
+
+creating sale records:
+def run():
+    Sale.objects.create(
+        restaurant = Restaurant.objects.first(),
+        income = 2.33,
+        datetime = timezone.now()
+    )
+
+    Sale.objects.create(
+        restaurant = Restaurant.objects.first(),
+        income = 5.33,
+        datetime = timezone.now()
+    )
+
+    Sale.objects.create(
+        restaurant = Restaurant.objects.first(),
+        income = 8.33,
+        datetime = timezone.now()
+    )
+
+
+######################################################################
+reading the database
+def run():
+    it takes all of the rows in the table and returns a query set (kinda list in python)
+    restaurant = Restaurant.objects.all()
+
+    indexing:
+    restaurant = Restaurant.objects.all()[0]
+
+    to get first record: dont retrun the queryset
+    restaurant = Restaurant.objects.first()
+
+    all records but only select specific columns (fields) : values()--> returns dictionary
+    Restaurant.objects.values('name', 'restaurant_type')
+
+
+
+Retrieving records based on some column values:
+def run():
+    get all restaurant with exact name
+    Restaurant.objects.filter(name="Tandoori House")
+
+    get all ratings with value 5
+    Ratings.objects.filter(rating = 5)
+
+    filter restaurant by type
+    indian_restaurants = Restaurant.objects.filter(restaurant_type=Restaurant.TypeChoices.INDIAN)
+
+
+#############################################################
+Retrieving specific objects,  field lookups are used to filter/query models based on the values of their 
+fields using double underscores (__),  field lookups: exact- default, iexact, contains, icontains
+Field lookups in Django ORM are always used with query methods like:
+filter()
+exclude()
+get()
+annotate(), etc.
+
+Exact match
+Restaurant.objects.filter(name__exact='Aroma')
+
+Partial match
+Restaurant.objects.filter(name__icontains='grill')
+
+Range
+Restaurant.objects.filter(date_opened__range=['2022-01-01', '2024-12-31'])
+
+Greater than
+Rating.objects.filter(rating__gte=4)
+
+Null check
+Sale.objects.filter(restaurant__isnull=True)
+
+
+
+##########################################################################
+Accessing child (Ratings) from parent (Restaurant) - using related_name
+def run():
+    restaurant = Restaurant.objects.first()
+    print(restaurant.ratings.all())
+
+
+#########################################################################
+Accessing parent (Restaurant) from child (Rating)
+def run():
+    Get the restaurant for a rating
+    rating = Rating.objects.get(id=1)
+    restaurant = rating.restaurant
+    print(restaurant.name)  
+
+#########################################################################
+Qurying M2M
+
+def run():
+    Access Related Restaurants for a Staff Member
+    staff = Staff.objects.get(id=1)
+    staff_restaurants = staff.restaurant.all()
+
+    for r in staff_restaurants:
+        print(r.name)
+    
+    Access Related Staff Members for a Restaurant
+    restaurant = Restaurant.objects.get(id=3)
+    staff_members = restaurant.staff_set.all()
+
+    for s in staff_members:
+        print(s.name)
+
+
+
+##########################################################################
+Deleting objects/ records
+
+def run():
+    delete a single object
+    restaurant = Restaurant.objects.get(id=1)
+    restaurant.delete()
+
+    delete multiple objects (bulk delete)
+    Restaurant.objects.filter(restaurant_type='OT').delete()
+
+    delete all ratings for a restaurant
+    restaurant = Restaurant.objects.get(id=1)
+    restaurant.ratings.all().delete()
+
+    delete all sales with zero income
+    Sales.objects.filter(income = 0).delete()
+
+    Model.delete() deletes one object and calls pre_delete / post_delete signals.
+    QuerySet.delete() deletes all matching objects in bulk — no individual delete() calls.
+    Deleting a parent object with on_delete=models.CASCADE will also delete children
+
+
+
+
+
+
+#############################################################
+Counting all records in a model
+def run():
+    print(Restaurant.objects.count())
+    print(Rating.objects.count())
+    print(Sale.objects.count())
+
+    pprint(connection.queries)
+
+
+#############################################################
+How to update a single row 
+def run():
+    restaurant = Restaurant.objects.first()
+    restaurant.name = "updated name"
+    restaurant.save()
+
+
+Updating multiple records in the database
+def run():
+    restaurant = Restaurant.objects.all()
+    qs.update will update all records of the qs
+    restaurant.update(date_opened = timezone.now())
+
+
+
+#############################################################
+N+1 issue:  
+query to fetch the main objects, and then
+1 additional query for each object to fetch related data
+This leads to N+1 total queries — one for the parent, and one for each child. 
+That’s bad for performance, especially with many records.
+    ratings = Rating.objects.all() - 1 query
+
+    for rating in ratings:
+        print(rating.restaurant.name) - N queries
+
+
+solution: select_related - Use this when accessing a ForeignKey or OneToOne field
+    select_related() performs a SQL JOIN.
+    It fetches both Rating and Restaurant data in a single query.
+    ratings = Rating.objects.select_related('restaurant')
+
+    for rating in ratings:
+        print(rating.restaurant.name)
+
+Solution: prefetch_related - Use this when you’re accessing a reverse ForeignKey 
+(like all ratings for a restaurant) or ManyToMany
+    only 2 queries
+    restaurants = Restaurant.objects.prefetch_related('ratings')
+    for r in restaurants:
+        for rating in r.ratings.all():
+            print(rating.rating)
+
+
+
+##################################################################
+Aggreggation and Annotation:
+- commonly used when you have dashboards and reporting apps and bi software
+
+What is aggregate()?
+It calculates a single value for the entire queryset.
+Returns a dictionary with the result(s).
+
+Get total income from all sales
+    from django.db.models import Sum
+    Sale.objects.aggregate(total_income=Sum('income')) --> {'total_income': 18342.70}
+
+Average rating of all ratings
+    from django.db.models import Avg
+    Rating.objects.aggregate(avg_rating=Avg('rating')) --> {'avg_rating': 4.2}
+
+
+What is annotate() ?
+It calculates a value per object in the queryset and adds it to each object.
+Returns a queryset where each object has an extra field (e.g. avg_rating)
+
+Average rating per restaurant
+from django.db.models import Avg
+restaurants = Restaurant.objects.annotate(avg_rating=Avg('ratings__rating' // related_name__actualfield))
+for r in restaurants:
+    print(r.name, r.avg_rating)
+

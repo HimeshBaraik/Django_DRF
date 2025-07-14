@@ -1,0 +1,63 @@
+openapi: 3.0.3
+info:
+  title: Your Project API
+  version: 1.0.0
+  description: Your project description
+paths:
+  /core/:
+    get:
+      operationId: core_retrieve
+      tags:
+      - core
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /core/allratings:
+    get:
+      operationId: core_allratings_retrieve
+      tags:
+      - core
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /core/allrestaurants:
+    get:
+      operationId: core_allrestaurants_retrieve
+      tags:
+      - core
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /core/allsales:
+    get:
+      operationId: core_allsales_retrieve
+      tags:
+      - core
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
