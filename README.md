@@ -12,6 +12,7 @@ A RESTful API to manage restaurants, sales, ratings, and staff—with secure JWT
 - [Public Endpoints](#public-endpoints)
 - [Protected Endpoints](#protected-endpoints)
 - [Usage Examples](#usage-examples)
+- [Run](#Running-the-Django-Project)
 
 ---
 
