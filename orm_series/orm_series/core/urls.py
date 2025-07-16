@@ -13,6 +13,8 @@ from .views import (
     StaffRestaurantListView, 
     RestaurantStaffListView,
     AddRestaurant,
+    SubmitRating,  #  <-- Imported new view
+    MyRatings,  
     )
 
 from rest_framework import permissions
@@ -24,8 +26,11 @@ urlpatterns = [
     path('allrestaurants', ListAllRestaurants.as_view()),
     path('allrestaurantsbytype', ListAllRestaurantsOfGivenType.as_view()),
     path('allsales', ListAllSales.as_view()),
-    path('allratings', ListAllRatings.as_view()),
     path('counttotalrestaurants', CountTotalRestaurants.as_view()),
+
+    path('allratings', ListAllRatings.as_view()),
+    path('ratings/submit/', SubmitRating.as_view(), name='submit-rating'),
+    path('ratings/my-ratings/', MyRatings.as_view(), name='my-ratings'),
 
     # Many to Many Relationship
     path('staff/<int:pk>/restaurants/', StaffRestaurantListView.as_view(), name='staff-restaurants'),
